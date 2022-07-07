@@ -1,15 +1,19 @@
-from django.contrib import messages
+import re
+
+from django.contrib import auth, messages
 from django.contrib.auth.models import User
 from django.contrib.messages import constants
 from django.shortcuts import HttpResponse, redirect, render
 
-from utils import password_is_valid
+from .utils import password_is_valid
 
 # Create your views here.
 
 
 def cadastro(request):
     if request.method == "GET":
+        if request.user.is_authenticated:
+            return redirect("/")
         return render(request, "cadastro.html")
     elif request.method == "POST":
         username = request.POST.get("usuario")
@@ -28,10 +32,33 @@ def cadastro(request):
                 request, constants.SUCCESS, "Usuário cadastrado com sucesso"
             )
             return redirect("/auth/logar")
-        except Exception:
+        except Exception as e:
+            print(e)
             messages.add_message(request, constants.ERROR, "Erro interno do sistema")
             return redirect("/auth/cadastro")
 
 
 def logar(request):
-    pass
+    if request.method == "GET":
+        if request.user.is_authenticated:
+            return redirect("/")
+        return render(request, "logar.html")
+    elif request.method == "POST":
+        username = request.POST.get("usuario")
+        senha = request.POST.get("senha")
+
+        usuario = auth.authenticate(username=username, password=senha)
+
+        if not usuario:
+            messages.add_message(
+                request, constants.ERROR, "Username ou senha inválidos"
+            )
+            return redirect("/auth/logar")
+        else:
+            auth.login(request, usuario)
+            return redirect("/")
+
+
+def sair(request):
+    auth.logout(request)
+    return redirect("/auth/logar")
