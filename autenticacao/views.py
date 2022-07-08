@@ -28,6 +28,15 @@ def cadastro(request):
             return redirect("/auth/cadastro")
 
         try:
+
+            if get_object_or_404(User, email=email):
+                messages.add_message(
+                    request,
+                    constants.WARNING,
+                    "Esse usuario ou email já esta cadastrado",
+                )
+                return redirect("/auth/logar")
+
             user = User.objects.create_user(
                 username=username, email=email, password=senha, is_active=False
             )
@@ -54,8 +63,7 @@ def cadastro(request):
                 link_ativacao=f"127.0.0.1:8000/auth/ativar_conta/{token}",
             )
             return redirect("/auth/logar")
-        except Exception as e:
-            print(e)
+        except Exception:
             messages.add_message(request, constants.ERROR, "Erro interno do sistema")
             return redirect("/auth/cadastro")
 

@@ -14,9 +14,12 @@ def password_is_valid(request, password, confirm_password):
             request, constants.ERROR, "Sua senha deve conter 6 ou mais caractertes"
         )
         return False
-
     if not password == confirm_password:
         messages.add_message(request, constants.ERROR, "As senhas não coincidem!")
+        return False
+
+    if not password:
+        messages.add_message(request, constants.ERROR, "As senhas vazia!")
         return False
 
     if not re.search("[A-Z]", password):
