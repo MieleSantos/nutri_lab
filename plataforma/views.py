@@ -4,4 +4,4 @@ from django.shortcuts import HttpResponse, render
 
 @login_required(login_url="/auth/logar")
 def pacientes(request):
-    return render(request, "plataforma.html")
+    return render(request, "pacientes.html")
