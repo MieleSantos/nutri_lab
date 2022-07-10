@@ -1,9 +1,18 @@
+from datetime import datetime
+
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages import constants
-from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
+from django.shortcuts import (
+    HttpResponse,
+    JsonResponse,
+    get_object_or_404,
+    redirect,
+    render,
+)
+from django.views.decorators.csrf import csrf_exempt
 
-from .models import Pacientes
+from .models import DadosPaciente, Pacientes
 
 
 @login_required(login_url="/auth/logar")
@@ -71,10 +80,56 @@ def dados_paciente_listar(request):
 
 @login_required(login_url="/auth/logar/")
 def dados_paciente(request, id):
+
     paciente = get_object_or_404(Pacientes, id=id)
     if not paciente.nutri == request.user:
         messages.add_message(request, constants.ERROR, "Esse paciente não é seu")
         return redirect("/dados_paciente/")
 
     if request.method == "GET":
-        return render(request, "dados_paciente.html", {"paciente": paciente})
+        dados_paciente = DadosPaciente.objects.filter(paciente=paciente)
+        return render(
+            request,
+            "dados_paciente.html",
+            {"paciente": paciente, "dados_paciente": dados_paciente},
+        )
+    elif request.method == "POST":
+        peso = request.POST.get("peso")
+        altura = request.POST.get("altura")
+        gordura = request.POST.get("gordura")
+        musculo = request.POST.get("musculo")
+
+        hdl = request.POST.get("hdl")
+        ldl = request.POST.get("ldl")
+        colesterol_total = request.POST.get("ctotal")
+        triglicerídios = request.POST.get("triglicerídios")
+
+        paciente = DadosPaciente(
+            paciente=paciente,
+            data=datetime.now(),
+            peso=peso,
+            altura=altura,
+            percentual_gordura=gordura,
+            percentual_musculo=musculo,
+            colesterol_hdl=hdl,
+            colesterol_ldl=ldl,
+            colesterol_total=colesterol_total,
+            trigliceridios=triglicerídios,
+        )
+
+        paciente.save()
+
+        messages.add_message(request, constants.SUCCESS, "Dados cadastrado com sucesso")
+        return redirect("/dados_paciente/")
+
+
+@login_required(login_url="/auth/logar/")
+@csrf_exempt
+def grafico_peso(request, id):
+    paciente = Pacientes.objects.get(id=id)
+    dados = DadosPaciente.objects.filter(paciente=paciente).order_by("data")
+
+    pesos = [dado.peso for dado in dados]
+    labels = list(range(len(pesos)))
+    data = {"peso": pesos, "labels": labels}
+    return JsonResponse(data)
