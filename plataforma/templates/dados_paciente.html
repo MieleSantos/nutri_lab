@@ -46,9 +46,9 @@
             {% for dado in dados_paciente %}
                 <tr>
                     <th scope="row">{{dado.peso}}</th>
-                    <td>{{dado.altura}}</td>
-                    <td>{{dado.percentual_gordura}}</td>
-                    <td>{{dado.percentual_musculo}}</td>
+                    <td scope="row">{{dado.altura}}</td>
+                    <td scope="row">{{dado.percentual_gordura}}</td>
+                    <td scope="row">{{dado.percentual_musculo}}</td>
                 </tr>
             {% endfor %}
             
@@ -131,8 +131,6 @@
                                     </div>
                                                             
                             </div>
-
-                            
                         </div>
                         <br>
                         <div class="form-row">
