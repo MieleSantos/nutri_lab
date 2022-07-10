@@ -1,7 +1,7 @@
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.messages import constants
-from django.shortcuts import HttpResponse, redirect, render
+from django.shortcuts import HttpResponse, get_object_or_404, redirect, render
 
 from .models import Pacientes
 
@@ -71,4 +71,10 @@ def dados_paciente_listar(request):
 
 @login_required(login_url="/auth/logar/")
 def dados_paciente(request, id):
-    return HttpResponse(id)
+    paciente = get_object_or_404(Pacientes, id=id)
+    if not paciente.nutri == request.user:
+        messages.add_message(request, constants.ERROR, "Esse paciente não é seu")
+        return redirect("/dados_paciente/")
+
+    if request.method == "GET":
+        return render(request, "dados_paciente.html", {"paciente": paciente})
