@@ -25,7 +25,7 @@ def cadastro(request):
         email = request.POST.get("email")
         confirmar_senha = request.POST.get("confirmar_senha")
         if not password_is_valid(request, senha, confirmar_senha):
-            return redirect("/auth/cadastro")
+            return redirect("/auth/cadastro/")
 
         try:
 
@@ -35,7 +35,7 @@ def cadastro(request):
                     constants.WARNING,
                     "Esse usuario ou email já esta cadastrado",
                 )
-                return redirect("/auth/logar")
+                return redirect("/auth/logar/")
 
             user = User.objects.create_user(
                 username=username, email=email, password=senha, is_active=False
@@ -62,16 +62,16 @@ def cadastro(request):
                 username=username,
                 link_ativacao=f"127.0.0.1:8000/auth/ativar_conta/{token}",
             )
-            return redirect("/auth/logar")
+            return redirect("/auth/loga/")
         except Exception:
             messages.add_message(request, constants.ERROR, "Erro interno do sistema")
-            return redirect("/auth/cadastro")
+            return redirect("/auth/cadastro/")
 
 
 def logar(request):
     if request.method == "GET":
         if request.user.is_authenticated:
-            return redirect("/")
+            return redirect("/pacientes/")
         return render(request, "logar.html")
     elif request.method == "POST":
         username = request.POST.get("usuario")
@@ -83,26 +83,26 @@ def logar(request):
             messages.add_message(
                 request, constants.ERROR, "Username ou senha inválidos"
             )
-            return redirect("/auth/logar")
+            return redirect("/auth/logar/")
         else:
             auth.login(request, usuario)
-            return redirect("/pacientes")
+            return redirect("/pacientes/")
 
 
 def sair(request):
     auth.logout(request)
-    return redirect("/auth/logar")
+    return redirect("/auth/logar/")
 
 
 def ativar_conta(request, token):
     token = get_object_or_404(Ativacao, token=token)
     if token.ativo:
         messages.add_message(request, constants.WARNING, "Essa token já foi usado")
-        return redirect("/auth/logar")
+        return redirect("/auth/logar/")
     user = User.objects.get(username=token.user.username)
     user.is_active = True
     user.save()
     token.ativo = True
     token.save()
     messages.add_message(request, constants.SUCCESS, "Conta ativa com sucesso")
-    return redirect("/auth/logar")
+    return redirect("/auth/logar/")
